@@ -2,6 +2,9 @@ import React,{useState,useEffect,useRef} from 'react';
 import {Form,Button,Message,Segment,TextArea,Divider,} from "semantic-ui-react";
 import {HeaderMessage,FooterMessage} from "../components/Common/WelcomeMessage";
 import CommonInputs from '../components/Common/CommonInputs';
+import ImageDropDiv from '../components/Common/ImageDropDiv';
+import axios from 'axios';
+import baseUrl from '../utils/baseUrl';
 
 const regexUserName = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/;
 
@@ -9,7 +12,7 @@ const regexUserName = /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/;
 function Signup() {
 
     const [user,setUser] = useState({
-        name:"",
+        name:"",    
         email:"",
         password:"",
         bio:"",
@@ -19,10 +22,15 @@ function Signup() {
         instagram:""
     });
 
-    const {name,email,password,bio}=user
+    const {name,email,password,bio}=user;
 
     const handleChange=(e)=>{
-        const {name,value}=e.target
+        const {name,value,files}=e.target;
+
+        if(name==='media'){
+            setMedia(files[0])
+            setMediaPreview(URL.createObjectURL(files[0]))
+        }
 
         setUser(prev=>({...prev,[name]:value}))
     }
@@ -39,6 +47,12 @@ function Signup() {
     const [usernameLoading,setUsernameLoading] = useState(false);
     const [usernameAvailable,setUsernameAvailable] = useState(false);
 
+    const [media,setMedia] = useState(null);
+    const [mediaPreview,setMediaPreview] = useState(null);
+    const [highlighted,setHighlighted] = useState(false);
+
+    const inputRef = useRef();
+
 
     const handleSubmit=e=>e.preventDefault();
 
@@ -47,7 +61,34 @@ function Signup() {
 
     isUser?setSubmitDisabled(false):setSubmitDisabled(true)
 
-    },[user])
+    },[user]);
+
+    const checkUsername=async()=>{
+        setUsernameLoading(true)
+        try {
+            const res = await axios.get(`${baseUrl}/api/signup/${username}`)
+            if(res.data==='Available'){
+                setUsernameAvailable(true);
+                setUser(prev=>({...prev,username}))
+            }
+
+
+
+        } catch (error) {
+            setErrorMsg('Username Not Available')
+        }
+    }
+
+
+    useEffect(()=>{
+        username===""?setUsernameAvailable(false):checkUsername()
+    },[username])
+
+
+
+
+
+
     return (
         <>
             <HeaderMessage/>
@@ -62,6 +103,15 @@ function Signup() {
         }/>
 
         <Segment>
+            <ImageDropDiv 
+            mediaPreview={mediaPreview} 
+            setMediaPreview={setMediaPreview} 
+            setMedia={setMedia} 
+            inputRef={inputRef}
+            highlighted={highlighted}
+            setHighlighted={setHighlighted}
+            handleChange={handleChange}
+            />
             <Form.Input 
             required
             label="Name" 
@@ -133,6 +183,7 @@ function Signup() {
 
             <Divider hidden/>
             <Button 
+            icon="signup"
             content="Signup" 
             type="submit" 
             color="orange" 
