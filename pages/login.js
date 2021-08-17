@@ -1,6 +1,7 @@
 import React,{useState,useEffect,useRef} from 'react';
 import {Form,Button,Message,Segment,TextArea,Divider,} from "semantic-ui-react";
 import {HeaderMessage,FooterMessage} from "../components/Common/WelcomeMessage";
+import {loginUser} from "../utils/authUser"
 
 function Login() {
 
@@ -26,7 +27,11 @@ function Login() {
         isUser?setSubmitDisabled(false):setSubmitDisabled(true)
         },[user]);
 
-    const handleSubmit = e => e.preventDefault();
+    const handleSubmit = async e => {e.preventDefault()
+    
+    await loginUser(user,setErrorMsg,setFormLoading);
+
+    };
 
     return (
     <>

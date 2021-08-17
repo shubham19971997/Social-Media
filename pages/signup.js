@@ -99,12 +99,16 @@ function Signup() {
           cancel = canceler
         }),
       })
+
+      if(errorMsg!==null)setErrorMsg(null)
+
       if (res.data === 'Available') {
         setUsernameAvailable(true)
         setUser((prev) => ({ ...prev, username }))
       }
     } catch (error) {
       setErrorMsg('Username Not Available')
+      setUsernameAvailable(false);
     }
     setUsernameLoading(false)
   }
